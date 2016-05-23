@@ -1,0 +1,30 @@
+{
+  "name": "davidburger/expressive-logger",
+  "description": "Monolog Zend Expressive integration",
+  "type": "library",
+  "keywords": [
+    "errorlog", "zend", "expressive", "monolog"
+  ],
+  "homepage": "https://github.com/davidburger/expressive-logger",
+  "license": "Apache-2.0",
+  "support": {
+    "source": "https://github.com/davidburger/expressive-logger",
+    "issues": "https://github.com/davidburger/expressive-logger/issues"
+  },
+  "authors": [
+    {
+      "name": "David Burger",
+      "email": "david.burger.gm@gmail.com"
+    }
+  ],
+  "require": {
+    "php": ">=7.0.0",
+    "monolog/monolog": "^1.19",
+    "psr/log": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ExpressiveLogger\\": "src/"
+    }
+  }
+}

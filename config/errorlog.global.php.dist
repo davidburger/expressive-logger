@@ -1,0 +1,39 @@
+<?php
+/**
+ * ExpressiveLogger
+ * - Monolog configuration example
+ */
+
+return [
+    'dependencies' => [
+        'factories' => [
+            \ExpressiveLogger\Logger::class => \ExpressiveLogger\LoggerFactory::class,
+        ],
+    ],
+    'expressiveLogger' => [
+        'channelName' => 'expressiveLogger',
+        'handlers' => [
+            'default' => [
+                'class' => \Monolog\Handler\StreamHandler::class,
+                'args' => [
+                    'path' => 'data/log/error.log',
+                    'level' => \Monolog\Logger::DEBUG
+                ],
+                'formatter' => [
+                    'class' => \Monolog\Formatter\LineFormatter::class,
+                    'args' => [
+                        'format' => "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n-----------\n\n",
+                        'dateFormat' => null,
+                        'allowInlineLineBreaks' => true,
+                    ]
+                ]
+            ]
+        ],
+        'registerErrorHandler' => false,
+        'ignoredExceptionClasses' => [
+            \Assert\InvalidArgumentException::class,
+        ],
+        'useIgnoreLogic' => false, //false - all errors will be logged
+        'useFacade' => true,
+    ]
+];
