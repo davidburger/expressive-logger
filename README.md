@@ -1,4 +1,4 @@
-# Monolog integration to Zend Expressive
+# Zend Expressive Monolog integration
 
 ------------
 
