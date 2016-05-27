@@ -1,7 +1,7 @@
 <?php
 /**
  * ExpressiveLogger
- * - Monolog configuration example
+ * error log configuration
  */
 
 return [
@@ -22,7 +22,8 @@ return [
                 'formatter' => [
                     'class' => \Monolog\Formatter\LineFormatter::class,
                     'args' => [
-                        'format' => "[%datetime%] %channel%.%level_name%: %message%\n Context: %context%\n Extra: %extra%\n-----------\n",
+                        'format' => "[%datetime%] %channel%.%level_name%: %message%"
+                            . "\n Context: %context%\n Extra: %extra%\n-----------\n",
                         'dateFormat' => null,
                         'allowInlineLineBreaks' => true,
                         'ignoreEmptyContextAndExtra' => false
@@ -31,13 +32,14 @@ return [
             ]
         ],
         //exception preformatting callback
-        'exceptionFormatterCallback' => function($exception, &$context) {
+        'exceptionFormatterCallback' => function ($exception, &$context) {
 
             if (true === empty($context)) {
                 $context = ['exception' => $exception];
             }
 
-            return sprintf('Exception %s: "%s" at %s line %s',
+            return sprintf(
+                'Exception %s: "%s" at %s line %s',
                 get_class($exception),
                 $exception->getMessage(),
                 $exception->getFile(),
