@@ -22,13 +22,28 @@ return [
                 'formatter' => [
                     'class' => \Monolog\Formatter\LineFormatter::class,
                     'args' => [
-                        'format' => "[%datetime%] %channel%.%level_name%: %message% %context% %extra%\n-----------\n\n",
+                        'format' => "[%datetime%] %channel%.%level_name%: %message%\n Context: %context%\n Extra: %extra%\n-----------\n",
                         'dateFormat' => null,
                         'allowInlineLineBreaks' => true,
+                        'ignoreEmptyContextAndExtra' => false
                     ]
                 ]
             ]
         ],
+        //exception preformatting callback
+        'exceptionFormatterCallback' => function($exception, &$context) {
+
+            if (true === empty($context)) {
+                $context = ['exception' => $exception];
+            }
+
+            return sprintf('Exception %s: "%s" at %s line %s',
+                get_class($exception),
+                $exception->getMessage(),
+                $exception->getFile(),
+                $exception->getLine()
+            );
+        },
         'registerErrorHandler' => false,
         'ignoredExceptionClasses' => [
             \Assert\InvalidArgumentException::class,

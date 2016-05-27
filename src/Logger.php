@@ -5,6 +5,7 @@ namespace ExpressiveLogger;
 use ExpressiveLogger\Exception\NotLoggableInterface;
 use Monolog\Formatter\FormatterInterface;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 
 use Monolog\Logger as MonologLogger;
 use Monolog\ErrorHandler as MonologErrorHandler;
@@ -27,9 +28,25 @@ class Logger
      */
     private $useIgnoreLogic = false;
 
+    /**
+     * @var callable|null
+     */
+    private $exceptionFormatterCallback;
+    
+
     public function __construct(array $config)
     {
         $this->logger = new MonologLogger($config['channelName']);
+        
+        $this->setOptions($config);
+    }
+
+    /**
+     * @param array $config
+     * @throws Exception\FacadeAlreadyInitializedException
+     */
+    private function setOptions(array $config) 
+    {
         foreach($config['handlers'] as $handler) {
             $this->setHandlerFromConfig($handler);
         }
@@ -48,6 +65,12 @@ class Logger
 
         if (false === empty($config['useFacade'])) {
             LoggerFacade::setLogger($this);
+        }
+        
+        if (false === empty($config['exceptionFormatterCallback'])
+            && is_callable($config['exceptionFormatterCallback'])
+        ) {
+            $this->exceptionFormatterCallback = $config['exceptionFormatterCallback'];
         }
     }
 
@@ -111,10 +134,23 @@ class Logger
      */
     public function error($message, array $context = array())
     {
-        if (is_object($message) && $this->isLoggable($message)) {
-            return $this->logger->error($message, $context);
+        if (is_object($message)) {
+
+            if (!$this->isLoggable($message)) {
+                return null;
+            }
+
+            if (null !== $this->exceptionFormatterCallback) {
+
+                $callback = $this->exceptionFormatterCallback;
+
+                $error = $callback($message, $context);
+
+                return $this->logger->error($error, $context);
+            }
         }
-        return null;
+
+        return $this->logger->error($message, $context);
     }
 
     public function __call($name, $arguments)

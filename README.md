@@ -30,6 +30,25 @@ cp vendor/davidburger/expressive-logger/config/errorlog.global.php.dist config/a
 **useFacade** (default value: true)
 - logger will be registered for static calls - see below.
 
+**exceptionFormatterCallback** (default value: null)
+- callback for formatting exception message and determining context before Monolog\Logger::error($message, $context) is called
+- config example:
+```php
+'exceptionFormatterCallback' => function($exception, &$context) {
+
+    if (true === empty($context)) {
+        $context = ['exception' => $exception];
+    }
+
+    return sprintf('Exception %s: "%s" at %s line %s',
+        get_class($exception),
+        $exception->getMessage(),
+        $exception->getFile(),
+        $exception->getLine()
+    );
+},
+```
+
   
 ## Usage
 ### Boostrap initialization
