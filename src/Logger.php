@@ -3,6 +3,7 @@
 namespace ExpressiveLogger;
 
 use ExpressiveLogger\Exception\NotLoggableInterface;
+use ExpressiveLogger\MessageFormatter\MessageFormatterInterface;
 use Monolog\Formatter\FormatterInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -157,23 +158,26 @@ class Logger
 
         } elseif (null !== $this->messageFormatter) {
 
-            $class = $this->messageFormatter;
-            $formatter = new $class;
-            
-            if (!$formatter instanceof MessageFormatterInterface) {
-                throw new \RuntimeException(
-                    sprintf('Formatter %s does not implement MessageFormatterInterface', get_class($formatter))
-                );
-            }
+            $formatter = $this->messageFormatter;
 
-            $context = $formatter->context($message, $context);
-            $error = $formatter->format($message);
-
-            return $this->logger->error($error, $context);
+            return $this->getFormattedError(new $formatter, $message, $context);
         }
 
         return $this->logger->error($message, $context);
+    }
 
+    /**
+     * @param MessageFormatterInterface $formatter
+     * @param $message
+     * @param array $context
+     * @return bool|null
+     */
+    private function getFormattedError(MessageFormatterInterface $formatter, $message, $context = [])
+    {
+        $context = $formatter->context($message, $context);
+        $error = $formatter->format($message);
+
+        return $this->logger->error($error, $context);
     }
 
     public function __call($name, $arguments)
