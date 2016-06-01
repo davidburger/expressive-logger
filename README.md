@@ -32,6 +32,7 @@ cp vendor/davidburger/expressive-logger/config/errorlog.global.php.dist config/a
 
 **exceptionFormatterCallback** (default value: null)
 - callback for formatting exception message and determining context before Monolog\Logger::error($message, $context) is called
+- higher priority than `messageFormatter` if both are defined
 - config example:
 ```php
 'exceptionFormatterCallback' => function($exception, &$context) {
@@ -47,6 +48,14 @@ cp vendor/davidburger/expressive-logger/config/errorlog.global.php.dist config/a
         $exception->getLine()
     );
 },
+```
+**messageFormatter** (default value: null)
+- class used for formatting error messages before Monolog\Logger::error($message) is called (very usefull for exceptions)
+- lower priority than `exceptionFormatterCallback` if both are defined
+- it is possible to write and use custom formatter implementing `\ExpressiveLogger\MessageFormatter\MessageFormatterInterface`
+- config example:
+```php
+'messageFormatter' => \ExpressiveLogger\MessageFormatter\DefaultFormatter::class
 ```
 
   

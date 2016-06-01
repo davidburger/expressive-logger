@@ -32,20 +32,8 @@ return [
             ]
         ],
         //exception preformatting callback
-        'exceptionFormatterCallback' => function ($exception, &$context) {
-
-            if (true === empty($context)) {
-                $context = ['exception' => $exception];
-            }
-
-            return sprintf(
-                'Exception %s: "%s" at %s line %s',
-                get_class($exception),
-                $exception->getMessage(),
-                $exception->getFile(),
-                $exception->getLine()
-            );
-        },
+        'exceptionFormatterCallback' => null,
+        'messageFormatter' => \ExpressiveLogger\MessageFormatter\DefaultFormatter::class,
         'registerErrorHandler' => false,
         'ignoredExceptionClasses' => [
             \Assert\InvalidArgumentException::class,

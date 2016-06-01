@@ -32,7 +32,11 @@ class Logger
      * @var callable|null
      */
     private $exceptionFormatterCallback;
-    
+
+    /**
+     * @var array|null
+     */
+    private $messageFormatter;
 
     public function __construct(array $config)
     {
@@ -71,6 +75,8 @@ class Logger
             && is_callable($config['exceptionFormatterCallback'])
         ) {
             $this->exceptionFormatterCallback = $config['exceptionFormatterCallback'];
+        } elseif (false === empty($config['messageFormatter'])) {
+            $this->messageFormatter = $config['messageFormatter'];
         }
     }
 
@@ -134,23 +140,40 @@ class Logger
      */
     public function error($message, array $context = array())
     {
-        if (is_object($message)) {
+        if (!is_object($message)) {
+            return $this->logger->error($message, $context);
+        }
 
-            if (!$this->isLoggable($message)) {
-                return null;
+        if (!$this->isLoggable($message)) {
+            return null;
+        }
+
+        if (null !== $this->exceptionFormatterCallback) {
+
+            $callback = $this->exceptionFormatterCallback;
+            $error = $callback($message, $context);
+
+            return $this->logger->error($error, $context);
+
+        } elseif (null !== $this->messageFormatter) {
+
+            $class = $this->messageFormatter;
+            $formatter = new $class;
+            
+            if (!$formatter instanceof MessageFormatterInterface) {
+                throw new \RuntimeException(
+                    sprintf('Formatter %s does not implement MessageFormatterInterface', get_class($formatter))
+                );
             }
 
-            if (null !== $this->exceptionFormatterCallback) {
+            $context = $formatter->context($message, $context);
+            $error = $formatter->format($message);
 
-                $callback = $this->exceptionFormatterCallback;
-
-                $error = $callback($message, $context);
-
-                return $this->logger->error($error, $context);
-            }
+            return $this->logger->error($error, $context);
         }
 
         return $this->logger->error($message, $context);
+
     }
 
     public function __call($name, $arguments)
