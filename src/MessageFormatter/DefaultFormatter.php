@@ -2,7 +2,7 @@
 
 namespace ExpressiveLogger\MessageFormatter;
 
-class DefaultFormatter implements MessageFormatter
+class DefaultFormatter implements MessageFormatterInterface
 {
     const FORMAT = 'Exception %s: "%s" at %s line %s';
 
