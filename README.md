@@ -6,7 +6,7 @@ Zend Expressive implementation of Monolog (https://github.com/Seldaek/monolog/)
  
 ## Installation
 ```sh
-composer require davidburger/expressive-logger:dev-master
+composer require davidburger/expressive-logger
 ```
 
 ## Setup
