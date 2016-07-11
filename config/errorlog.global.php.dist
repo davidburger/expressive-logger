@@ -27,7 +27,8 @@ return [
                         'dateFormat' => null,
                         'allowInlineLineBreaks' => true,
                         'ignoreEmptyContextAndExtra' => false
-                    ]
+                    ],
+                    'showStackTrace' => true,
                 ]
             ]
         ],
