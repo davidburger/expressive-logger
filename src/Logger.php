@@ -110,9 +110,16 @@ class Logger
     {
         $class = $formatter['class'];
         $args = $formatter['args'];
+        $showStackTrace = $formatter['showStackTrace'] ?? false;
 
         $reflectionClass = new ReflectionClass($class);
-        return $reflectionClass->newInstanceArgs($args);
+        $formatterInstance = $reflectionClass->newInstanceArgs($args);
+
+        if (method_exists($formatterInstance, 'includeStacktraces') && $showStackTrace === true) {
+            $formatterInstance->includeStacktraces();
+        }
+
+        return $formatterInstance;
     }
 
     public function isLoggable($error) : bool
