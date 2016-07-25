@@ -5,6 +5,8 @@ namespace ExpressiveLogger;
 use ExpressiveLogger\Exception\NotLoggableInterface;
 use ExpressiveLogger\MessageFormatter\MessageFormatterInterface;
 use Monolog\Formatter\FormatterInterface;
+use Monolog\Formatter\HtmlFormatter;
+use Monolog\Handler\NativeMailerHandler;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
@@ -96,6 +98,15 @@ class Logger
         if (false === empty($handler['formatter'])) {
             $formatter = $this->getFormatterFromConfig($handler['formatter']);
             $handlerInstance->setFormatter($formatter);
+
+            //if the HTML formatter is used with email handler, set email content-type to text/html
+            if (
+                $formatter instanceof HtmlFormatter &&
+                $handlerInstance instanceof NativeMailerHandler &&
+                method_exists($formatter, 'setContentType')
+            ) {
+                $formatter->setContentType('text/html');
+            }
         }
 
         $this->logger->pushHandler($handlerInstance);
