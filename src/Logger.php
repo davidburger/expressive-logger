@@ -103,9 +103,9 @@ class Logger
             if (
                 $formatter instanceof HtmlFormatter &&
                 $handlerInstance instanceof NativeMailerHandler &&
-                method_exists($formatter, 'setContentType')
+                method_exists($handlerInstance, 'setContentType')
             ) {
-                $formatter->setContentType('text/html');
+                $handlerInstance->setContentType('text/html');
             }
         }
 
