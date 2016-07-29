@@ -6,6 +6,7 @@ use ExpressiveLogger\Exception\NotLoggableInterface;
 use ExpressiveLogger\MessageFormatter\MessageFormatterInterface;
 use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\HtmlFormatter;
+use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\NativeMailerHandler;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -83,11 +84,7 @@ class Logger
         }
     }
 
-    /**
-     * @param array $handler
-     * @return $this
-     */
-    private function setHandlerFromConfig(array $handler)
+    private function setHandlerFromConfig(array $handler) : self
     {
         $class = $handler['class'];
         $args = $handler['args'];
@@ -109,15 +106,15 @@ class Logger
             }
         }
 
+        if (false === empty($handler['processors'])) {
+            $this->setProcessorsToHandlerFromConfig($handler['processors'], $handlerInstance);
+        }
+
         $this->logger->pushHandler($handlerInstance);
         return $this;
     }
 
-    /**
-     * @param array $formatter
-     * @return FormatterInterface
-     */
-    private function getFormatterFromConfig(array $formatter)
+    private function getFormatterFromConfig(array $formatter) : FormatterInterface
     {
         $class = $formatter['class'];
         $args = $formatter['args'];
@@ -131,6 +128,29 @@ class Logger
         }
 
         return $formatterInstance;
+    }
+
+    private function setProcessorsToHandlerFromConfig(array $processors, HandlerInterface $handlerInstance)
+    {
+        foreach ($processors as $processor) {
+
+            if (is_array($processor)) {
+                $class = $processor['class'];
+                $args = $processor['args'];
+            } else {
+                $class = $processor;
+            }
+
+            if (false === empty($args)) {
+                //if arguments is't specified we can use class name
+                $handlerInstance->pushProcessor($class);
+            } else {
+                $reflectionClass = new ReflectionClass($class);
+                $processorInstance = $reflectionClass->newInstanceArgs($args);
+                $handlerInstance->pushProcessor($processorInstance);
+            }
+
+        }
     }
 
     public function isLoggable($error) : bool
