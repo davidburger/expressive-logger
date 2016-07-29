@@ -139,17 +139,12 @@ class Logger
                 $args = $processor['args'];
             } else {
                 $class = $processor;
+                $args = [];
             }
 
-            if (true === empty($args)) {
-                //if arguments is't specified we can use class name
-                $handlerInstance->pushProcessor($class);
-            } else {
-                $reflectionClass = new ReflectionClass($class);
-                $processorInstance = $reflectionClass->newInstanceArgs($args);
-                $handlerInstance->pushProcessor($processorInstance);
-            }
-
+            $reflectionClass = new ReflectionClass($class);
+            $processorInstance = $reflectionClass->newInstanceArgs($args);
+            $handlerInstance->pushProcessor($processorInstance);
         }
     }
 
