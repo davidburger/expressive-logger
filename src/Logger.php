@@ -141,7 +141,7 @@ class Logger
                 $class = $processor;
             }
 
-            if (false === empty($args)) {
+            if (true === empty($args)) {
                 //if arguments is't specified we can use class name
                 $handlerInstance->pushProcessor($class);
             } else {
