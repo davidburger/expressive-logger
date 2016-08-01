@@ -8,6 +8,7 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\HtmlFormatter;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\NativeMailerHandler;
+use Monolog\Handler\RedisHandler;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 
@@ -17,6 +18,10 @@ use ReflectionClass;
 
 class Logger
 {
+    const HANDLERS_MAPPING = [
+        'redis' => RedisHandler::class,
+    ];
+
     /**
      * @var LoggerInterface
      */
@@ -42,9 +47,13 @@ class Logger
      */
     private $messageFormatter;
 
-    public function __construct(array $config)
+    /** @var array */
+    private $handlers;
+
+    public function __construct(array $config, array $handlers)
     {
         $this->logger = new MonologLogger($config['channelName']);
+        $this->handlers = $handlers;
         
         $this->setOptions($config);
     }
@@ -55,8 +64,8 @@ class Logger
      */
     private function setOptions(array $config) 
     {
-        foreach($config['handlers'] as $handler) {
-            $this->setHandlerFromConfig($handler);
+        foreach($config['handlers'] as $name => $handler) {
+           $this->setHandlerFromConfig($name, $handler);
         }
 
         if (false === empty($config['registerErrorHandler'])) {
@@ -84,13 +93,23 @@ class Logger
         }
     }
 
-    private function setHandlerFromConfig(array $handler) : self
+    private function getHandlerInstance(string $name, array $handler) : HandlerInterface
     {
+        //return handler from factory
+        if (array_key_exists($name, self::HANDLERS_MAPPING)) {
+            return self::HANDLERS_MAPPING[$name];
+        }
+
         $class = $handler['class'];
         $args = $handler['args'];
 
         $reflectionClass = new ReflectionClass($class);
-        $handlerInstance = $reflectionClass->newInstanceArgs($args);
+        return $reflectionClass->newInstanceArgs($args);
+    }
+
+    private function setHandlerFromConfig(string $name, array $handler) : self
+    {
+        $handlerInstance = $this->getHandlerInstance($name, $handler);
 
         if (false === empty($handler['formatter'])) {
             $formatter = $this->getFormatterFromConfig($handler['formatter']);
