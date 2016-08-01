@@ -20,7 +20,8 @@
   "require": {
     "php": ">=7.0.0",
     "monolog/monolog": "^1.19",
-    "psr/log": "^1.0"
+    "psr/log": "^1.0",
+    "container-interop/container-interop": "^1.1"
   },
   "autoload": {
     "psr-4": {
