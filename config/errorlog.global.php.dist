@@ -8,6 +8,7 @@ return [
     'dependencies' => [
         'factories' => [
             \ExpressiveLogger\Logger::class => \ExpressiveLogger\LoggerFactory::class,
+//          \Monolog\Handler\RedisHandler::class => \ExpressiveLogger\Factory\RedisHandlerFactory::class, //uncomment only if you use RedisHandler
         ],
     ],
     'expressiveLogger' => [
