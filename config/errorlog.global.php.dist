@@ -29,7 +29,16 @@ return [
                         'ignoreEmptyContextAndExtra' => false
                     ],
                     'showStackTrace' => true,
-                ]
+                ],
+                'processors' => [
+                    \Monolog\Processor\WebProcessor::class,
+                    [
+                        'class' => \Monolog\Processor\IntrospectionProcessor::class,
+                        'args' => [
+                            'level' => \Monolog\Logger::DEBUG,
+                        ],
+                    ],
+                ],
             ]
         ],
         //exception preformatting callback
