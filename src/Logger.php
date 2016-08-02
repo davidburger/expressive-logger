@@ -2,6 +2,7 @@
 
 namespace ExpressiveLogger;
 
+use ExpressiveLogger\Exception\InvalidConfigurationException;
 use ExpressiveLogger\Exception\NotLoggableInterface;
 use ExpressiveLogger\MessageFormatter\MessageFormatterInterface;
 use Monolog\Formatter\FormatterInterface;
@@ -10,7 +11,6 @@ use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\NativeMailerHandler;
 use Monolog\Handler\RedisHandler;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 
 use Monolog\Logger as MonologLogger;
 use Monolog\ErrorHandler as MonologErrorHandler;
@@ -96,12 +96,18 @@ class Logger
     private function getHandlerInstance(string $name, array $handler) : HandlerInterface
     {
         //return handler from factory
-        if (array_key_exists($name, self::HANDLERS_MAPPING)) {
-            return self::HANDLERS_MAPPING[$name];
+        if (array_key_exists($name, $this->handlers)) {
+            return $this->handlers[$name];
         }
 
-        $class = $handler['class'];
-        $args = $handler['args'];
+        $class = $handler['class'] ?? null;
+        $args = $handler['args'] ?? [];
+
+        if (!$class) {
+            throw new InvalidConfigurationException(
+                "Handle '{$name}' can not be created. Factory or class name is missing in config"
+            );
+        }
 
         $reflectionClass = new ReflectionClass($class);
         return $reflectionClass->newInstanceArgs($args);
@@ -109,7 +115,11 @@ class Logger
 
     private function setHandlerFromConfig(string $name, array $handler) : self
     {
-        $handlerInstance = $this->getHandlerInstance($name, $handler);
+        try {
+            $handlerInstance = $this->getHandlerInstance($name, $handler);
+        } catch (InvalidConfigurationException $e) {
+            return $this;
+        }
 
         if (false === empty($handler['formatter'])) {
             $formatter = $this->getFormatterFromConfig($handler['formatter']);
