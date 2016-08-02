@@ -19,10 +19,8 @@ class LoggerFactory
 
         /* Get handlers object from factory */
         foreach (self::NAMED_HANDLERS as $name => $handler) {
-            $handlerObject = $container->get($handler);
-
-            if ($handlerObject) {
-                $handlers[$name] = $handlerObject;
+            if ($container->has($handler)) {
+                $handlers[$name] = $container->get($handler);
             }
         }
         
