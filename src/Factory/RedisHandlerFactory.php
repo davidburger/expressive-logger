@@ -11,7 +11,7 @@ use Predis\Client;
 final class RedisHandlerFactory
 {
 
-    public function __invokable(ContainerInterface $container) : RedisHandler
+    public function __invoke(ContainerInterface $container) : RedisHandler
     {
         $config = $container->get('config');
 
