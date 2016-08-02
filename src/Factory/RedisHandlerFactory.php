@@ -27,7 +27,7 @@ final class RedisHandlerFactory
             throw new InvalidConfigurationException('Redis client not found in container');
         }
 
-        if ($redisClient instanceof Client) {
+        if (!$redisClient instanceof Client) {
             throw new InvalidConfigurationException('Redis client have to be instance of Predis\Client');
         }
 
