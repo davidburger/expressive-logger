@@ -9,7 +9,6 @@ use Monolog\Formatter\FormatterInterface;
 use Monolog\Formatter\HtmlFormatter;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\NativeMailerHandler;
-use Monolog\Handler\RedisHandler;
 use Psr\Log\LoggerInterface;
 
 use Monolog\Logger as MonologLogger;
@@ -18,10 +17,6 @@ use ReflectionClass;
 
 class Logger
 {
-    const HANDLERS_MAPPING = [
-        'redis' => RedisHandler::class,
-    ];
-
     /**
      * @var LoggerInterface
      */
@@ -48,12 +43,12 @@ class Logger
     private $messageFormatter;
 
     /** @var array */
-    private $handlers;
+    private $namedHandlers;
 
     public function __construct(array $config, array $handlers)
     {
         $this->logger = new MonologLogger($config['channelName']);
-        $this->handlers = $handlers;
+        $this->namedHandlers = $handlers;
         
         $this->setOptions($config);
     }
@@ -95,9 +90,9 @@ class Logger
 
     private function getHandlerInstance(string $name, array $handler) : HandlerInterface
     {
-        //return handler from factory
-        if (array_key_exists($name, $this->handlers)) {
-            return $this->handlers[$name];
+        //return named handler from factory
+        if (array_key_exists($name, $this->namedHandlers)) {
+            return $this->namedHandlers[$name];
         }
 
         $class = $handler['class'] ?? null;
@@ -115,11 +110,7 @@ class Logger
 
     private function setHandlerFromConfig(string $name, array $handler) : self
     {
-        try {
-            $handlerInstance = $this->getHandlerInstance($name, $handler);
-        } catch (InvalidConfigurationException $e) {
-            return $this;
-        }
+        $handlerInstance = $this->getHandlerInstance($name, $handler);
 
         if (false === empty($handler['formatter'])) {
             $formatter = $this->getFormatterFromConfig($handler['formatter']);

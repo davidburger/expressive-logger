@@ -7,8 +7,8 @@ use Monolog\Handler\RedisHandler;
 
 class LoggerFactory
 {
-    const HANDLERS_WITH_FACTORY = [
-        RedisHandler::class,
+    const NAMED_HANDLERS = [
+        'redis' => RedisHandler::class,
     ];
 
     public function __invoke(ContainerInterface $container) : Logger
@@ -18,11 +18,11 @@ class LoggerFactory
         $handlers = [];
 
         /* Get handlers object from factory */
-        foreach (self::HANDLERS_WITH_FACTORY as $handler) {
+        foreach (self::NAMED_HANDLERS as $name => $handler) {
             $handlerObject = $container->get($handler);
 
             if ($handlerObject) {
-                $handlers[$handler] = $handlerObject;
+                $handlers[$name] = $handlerObject;
             }
         }
         
