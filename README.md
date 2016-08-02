@@ -84,5 +84,21 @@ try {
    LoggerFacade::error($e);
 }
 ```
-
-
+### Monolog handlers configuration
+#### RedisHandler
+```php
+'dependencies' => [
+    'factories' => [
+        \Monolog\Handler\RedisHandler::class => \ExpressiveLogger\Factory\RedisHandlerFactory::class,
+    ],
+],
+'expressiveLogger' => [
+    'handlers' => [
+        'redis' => [
+            'client' => 'redisClient',  //name of redis instance available via container
+            'key' => 'logstash',
+            'level' => Logger::DEBUG,
+        ],
+    ]
+]
+```

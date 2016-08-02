@@ -2,6 +2,7 @@
 
 namespace ExpressiveLogger;
 
+use ExpressiveLogger\Exception\InvalidConfigurationException;
 use ExpressiveLogger\Exception\NotLoggableInterface;
 use ExpressiveLogger\MessageFormatter\MessageFormatterInterface;
 use Monolog\Formatter\FormatterInterface;
@@ -9,7 +10,6 @@ use Monolog\Formatter\HtmlFormatter;
 use Monolog\Handler\HandlerInterface;
 use Monolog\Handler\NativeMailerHandler;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 
 use Monolog\Logger as MonologLogger;
 use Monolog\ErrorHandler as MonologErrorHandler;
@@ -42,9 +42,13 @@ class Logger
      */
     private $messageFormatter;
 
-    public function __construct(array $config)
+    /** @var array */
+    private $namedHandlers;
+
+    public function __construct(array $config, array $handlers)
     {
         $this->logger = new MonologLogger($config['channelName']);
+        $this->namedHandlers = $handlers;
         
         $this->setOptions($config);
     }
@@ -55,8 +59,8 @@ class Logger
      */
     private function setOptions(array $config) 
     {
-        foreach($config['handlers'] as $handler) {
-            $this->setHandlerFromConfig($handler);
+        foreach($config['handlers'] as $name => $handler) {
+           $this->setHandlerFromConfig($name, $handler);
         }
 
         if (false === empty($config['registerErrorHandler'])) {
@@ -84,13 +88,29 @@ class Logger
         }
     }
 
-    private function setHandlerFromConfig(array $handler) : self
+    private function getHandlerInstance(string $name, array $handler) : HandlerInterface
     {
-        $class = $handler['class'];
-        $args = $handler['args'];
+        //return named handler from factory
+        if (array_key_exists($name, $this->namedHandlers)) {
+            return $this->namedHandlers[$name];
+        }
+
+        $class = $handler['class'] ?? null;
+        $args = $handler['args'] ?? [];
+
+        if (!$class) {
+            throw new InvalidConfigurationException(
+                "Handle '{$name}' can not be created. Factory or class name is missing in config"
+            );
+        }
 
         $reflectionClass = new ReflectionClass($class);
-        $handlerInstance = $reflectionClass->newInstanceArgs($args);
+        return $reflectionClass->newInstanceArgs($args);
+    }
+
+    private function setHandlerFromConfig(string $name, array $handler) : self
+    {
+        $handlerInstance = $this->getHandlerInstance($name, $handler);
 
         if (false === empty($handler['formatter'])) {
             $formatter = $this->getFormatterFromConfig($handler['formatter']);
