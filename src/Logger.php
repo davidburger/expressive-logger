@@ -190,12 +190,13 @@ class Logger
     /**
      * @param $message
      * @param array $context
+     * @param int $level
      * @return bool|null
      */
-    public function error($message, array $context = array())
+    public function error($message, array $context = array(), $level = \Monolog\Logger::ERROR)
     {
         if (!is_object($message)) {
-            return $this->logger->error($message, $context);
+            return $this->logger->log($level, $message, $context);
         }
 
         if (!$this->isLoggable($message)) {
@@ -207,30 +208,31 @@ class Logger
             $callback = $this->exceptionFormatterCallback;
             $error = $callback($message, $context);
 
-            return $this->logger->error($error, $context);
+            return $this->logger->log($level, $error, $context);
 
         } elseif (null !== $this->messageFormatter) {
 
             $formatter = $this->messageFormatter;
 
-            return $this->getFormattedError(new $formatter, $message, $context);
+            return $this->getFormattedError(new $formatter, $message, $context, $level);
         }
 
-        return $this->logger->error($message, $context);
+        return $this->logger->log($level, $message, $context);
     }
 
     /**
      * @param MessageFormatterInterface $formatter
      * @param $message
      * @param array $context
+     * @param int $level
      * @return bool|null
      */
-    private function getFormattedError(MessageFormatterInterface $formatter, $message, $context = [])
+    private function getFormattedError(MessageFormatterInterface $formatter, $message, $context = [], $level)
     {
         $context = $formatter->context($message, $context);
         $error = $formatter->format($message);
 
-        return $this->logger->error($error, $context);
+        return $this->logger->log($level, $error, $context);
     }
 
     public function __call($name, $arguments)
