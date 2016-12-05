@@ -30,7 +30,11 @@ class LoggerFacade
         if (null === self::$logger) {
             throw new FacadeNotInitializedException(FacadeNotInitializedException::ERROR_MSG);
         }
-        
-        return call_user_func_array([self::$logger, $name], $arguments);
+
+        try {
+            return call_user_func_array([self::$logger, $name], $arguments);
+        } catch (\Exception $e) {
+        }
+
     }
 }
