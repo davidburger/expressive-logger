@@ -9,11 +9,11 @@ class LoggerFactory
     public function __invoke(ContainerInterface $container) : Logger
     {
         $config = $container->get('config');
-
+        $handlersInConfig = $config['expressiveLogger']['handlers'] ?? [];
         $handlers = [];
 
         /* Get handlers object from factory */
-        foreach ($config['handlers'] as $name => $handler) {
+        foreach ($handlersInConfig as $name => $handler) {
             if ($container->has($handler['class'])) {
                 $handlers[$name] = $container->get($handler['class']);
             }
