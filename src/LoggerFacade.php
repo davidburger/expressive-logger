@@ -33,8 +33,8 @@ class LoggerFacade
 
         try {
             return call_user_func_array([self::$logger, $name], $arguments);
-        } catch (\Exception $e) {
-        	error_log((string)$e, 0);
+        } catch (\Throwable $e) {
+            return self::$logger->loggerError($e);
         }
     }
 }

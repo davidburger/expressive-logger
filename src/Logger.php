@@ -45,6 +45,8 @@ class Logger
     /** @var array */
     private $namedHandlers;
 
+    private $loggerErrorHandler;
+
     public function __construct(array $config, array $handlers)
     {
         $this->logger = new MonologLogger($config['channelName']);
@@ -85,6 +87,16 @@ class Logger
             $this->exceptionFormatterCallback = $config['exceptionFormatterCallback'];
         } elseif (false === empty($config['messageFormatter'])) {
             $this->messageFormatter = $config['messageFormatter'];
+        }
+
+        //logger for logger errors
+        if (false === empty($config['loggerErrorHandler'])
+            && class_exists($config['loggerErrorHandler'])
+        ) {
+            $loggerErrorHandler = new $config['loggerErrorHandler'];
+            if ($loggerErrorHandler instanceof ILoggerErrorHandler) {
+                $this->loggerErrorHandler = $loggerErrorHandler;
+            }
         }
     }
 
@@ -195,29 +207,36 @@ class Logger
      */
     public function error($message, array $context = array(), $level = \Monolog\Logger::ERROR)
     {
-        if (!is_object($message)) {
+        try {
+            if ( ! is_object($message)) {
+                return $this->logger->log($level, $message, $context);
+            }
+
+            if ( ! $this->isLoggable($message)) {
+                return null;
+            }
+
+            if (null !== $this->exceptionFormatterCallback) {
+
+                $callback = $this->exceptionFormatterCallback;
+                $error    = $callback($message, $context);
+
+                return $this->logger->log($level, $error, $context);
+
+            } elseif (null !== $this->messageFormatter) {
+
+                $formatter = $this->messageFormatter;
+
+                return $this->getFormattedError(new $formatter, $message, $context, $level);
+            }
+
             return $this->logger->log($level, $message, $context);
+
+        } catch(\Throwable $e) {
+            return $this->loggerError($e);
         }
 
-        if (!$this->isLoggable($message)) {
-            return null;
-        }
-
-        if (null !== $this->exceptionFormatterCallback) {
-
-            $callback = $this->exceptionFormatterCallback;
-            $error = $callback($message, $context);
-
-            return $this->logger->log($level, $error, $context);
-
-        } elseif (null !== $this->messageFormatter) {
-
-            $formatter = $this->messageFormatter;
-
-            return $this->getFormattedError(new $formatter, $message, $context, $level);
-        }
-
-        return $this->logger->log($level, $message, $context);
+        return null;
     }
 
     /**
@@ -237,6 +256,23 @@ class Logger
 
     public function __call($name, $arguments)
     {
-        return call_user_func_array([$this->logger, $name], $arguments);
+        try {
+            return call_user_func_array([$this->logger, $name], $arguments);
+        } catch (\Throwable $e) {
+            return $this->loggerError($e);
+        }
+
+        return null;
+    }
+
+    public function loggerError(\Throwable $e)
+    {
+        if ($this->loggerErrorHandler) {
+            $handler = $this->loggerErrorHandler;
+            $handler($e);
+            return null;
+        }
+
+        throw $e;
     }
 }

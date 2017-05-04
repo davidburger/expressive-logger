@@ -51,5 +51,6 @@ return [
         ],
         'useIgnoreLogic' => false, //false - all errors will be logged
         'useFacade' => true,
+        'loggerErrorHandler' => '', // \ExpressiveLogger\LoggerSystemErrorHandler::class, // (logger for logger errors)
     ]
 ];
